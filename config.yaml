@@ -1,0 +1,57 @@
+# FinSight Configuration
+
+fetchers:
+  yfinance:
+    suffix: ".NS"           # NSE stocks require .NS suffix
+    default_period: "10y"
+    default_interval: "1d"
+  amfi:
+    base_url: "https://api.mfapi.in/mf"
+  nse:
+    base_url: "https://www.nseindia.com"
+    enabled: false           # NSE blocks automated access; enable cautiously
+  macro:
+    worldbank_url: "https://api.worldbank.org/v2"
+  rate_limit:
+    requests_per_second: 2
+    burst: 5
+
+analysis:
+  fundamental:
+    weights:
+      earnings_quality: 0.25
+      balance_sheet: 0.20
+      valuation: 0.20
+      moat: 0.20
+      management: 0.15
+    red_flag_penalty: 5      # Points deducted per red flag
+  technical:
+    sma_periods: [50, 200]
+    ema_periods: [20, 50]
+    rsi_period: 14
+    macd:
+      fast: 12
+      slow: 26
+      signal: 9
+    bbands:
+      length: 20
+      std: 2
+    adx_period: 14
+  mf:
+    risk_free_rate: 0.07     # India 10Y govt bond ~7%
+    benchmark_ticker: "^NSEI" # Nifty 50
+
+advisory:
+  provider: "anthropic"       # anthropic or openai
+  model: "claude-sonnet-4-20250514"
+  max_tokens: 4096
+  temperature: 0.3
+
+storage:
+  db_url: "sqlite:///./data/finsight.db"
+  cache_dir: "./cache"
+  cache_ttl: 86400            # 24 hours in seconds
+
+reports:
+  output_dir: "./reports_output"
+  default_format: "html"      # html, pdf, json

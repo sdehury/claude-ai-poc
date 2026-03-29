@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FinSight — MF {{ result.scheme_code }} Analysis</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0d1117; color: #c9d1d9; padding: 20px; }
+        .container { max-width: 900px; margin: 0 auto; }
+        h1 { color: #58a6ff; margin-bottom: 5px; }
+        h2 { color: #79c0ff; margin: 20px 0 10px; border-bottom: 1px solid #30363d; padding-bottom: 5px; }
+        .header { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 20px; margin-bottom: 20px; }
+        .header .fund-name { font-size: 1.5em; font-weight: bold; color: #f0f6fc; }
+        .header .meta { color: #8b949e; margin-top: 5px; }
+        .score-badge {
+            display: inline-block; padding: 4px 12px; border-radius: 20px;
+            font-weight: bold; font-size: 1.1em;
+        }
+        .score-excellent { background: #238636; color: #fff; }
+        .score-good { background: #2ea043; color: #fff; }
+        .score-average { background: #9e6a03; color: #fff; }
+        .score-below { background: #da3633; color: #fff; }
+        .score-poor { background: #8b0000; color: #fff; }
+        .card { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 15px; margin-bottom: 15px; }
+        table { width: 100%; border-collapse: collapse; margin: 10px 0; }
+        th, td { padding: 8px 12px; text-align: left; border-bottom: 1px solid #21262d; }
+        th { color: #8b949e; font-size: 0.9em; }
+        .positive { color: #3fb950; }
+        .negative { color: #f85149; }
+        .disclaimer { font-size: 0.8em; color: #8b949e; margin-top: 30px; padding-top: 15px; border-top: 1px solid #21262d; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <div class="fund-name">{{ result.scheme_name }}</div>
+        <div class="meta">
+            Scheme Code: {{ result.scheme_code }} |
+            NAV: Rs.{{ result.latest_nav }} ({{ result.nav_date }})
+        </div>
+    </div>
+
+    <h2>Overall Assessment</h2>
+    <div class="card">
+        <span class="score-badge score-{{ result.rating|lower|replace(' ', '-') }}">
+            {{ result.overall_score }}/100 — {{ result.rating }}
+        </span>
+    </div>
+
+    <h2>Returns</h2>
+    <div class="card">
+        <table>
+            <tr><th>Period</th><th>Return</th></tr>
+            {% if returns.return_1y is not none %}
+            <tr><td>1 Year</td><td class="{{ 'positive' if returns.return_1y >= 0 else 'negative' }}">{{ "%.2f"|format(returns.return_1y) }}%</td></tr>
+            {% endif %}
+            {% if returns.return_3y_cagr is not none %}
+            <tr><td>3 Year CAGR</td><td class="{{ 'positive' if returns.return_3y_cagr >= 0 else 'negative' }}">{{ "%.2f"|format(returns.return_3y_cagr) }}%</td></tr>
+            {% endif %}
+            {% if returns.return_5y_cagr is not none %}
+            <tr><td>5 Year CAGR</td><td class="{{ 'positive' if returns.return_5y_cagr >= 0 else 'negative' }}">{{ "%.2f"|format(returns.return_5y_cagr) }}%</td></tr>
+            {% endif %}
+            {% if returns.return_10y_cagr is not none %}
+            <tr><td>10 Year CAGR</td><td class="{{ 'positive' if returns.return_10y_cagr >= 0 else 'negative' }}">{{ "%.2f"|format(returns.return_10y_cagr) }}%</td></tr>
+            {% endif %}
+        </table>
+    </div>
+
+    <h2>Risk Metrics</h2>
+    <div class="card">
+        <table>
+            <tr><th>Metric</th><th>Value</th></tr>
+            {% if result.sharpe_ratio is not none %}<tr><td>Sharpe Ratio</td><td>{{ result.sharpe_ratio }}</td></tr>{% endif %}
+            {% if result.sortino_ratio is not none %}<tr><td>Sortino Ratio</td><td>{{ result.sortino_ratio }}</td></tr>{% endif %}
+            {% if result.alpha is not none %}<tr><td>Alpha</td><td class="{{ 'positive' if result.alpha >= 0 else 'negative' }}">{{ "%.2f"|format(result.alpha) }}%</td></tr>{% endif %}
+            {% if result.beta is not none %}<tr><td>Beta</td><td>{{ result.beta }}</td></tr>{% endif %}
+            {% if result.std_deviation is not none %}<tr><td>Std Deviation</td><td>{{ "%.2f"|format(result.std_deviation) }}%</td></tr>{% endif %}
+            {% if result.max_drawdown is not none %}<tr><td>Max Drawdown</td><td class="negative">{{ "%.2f"|format(result.max_drawdown) }}%</td></tr>{% endif %}
+            {% if result.max_drawdown_duration_days is not none %}<tr><td>Drawdown Duration</td><td>{{ result.max_drawdown_duration_days }} days</td></tr>{% endif %}
+        </table>
+    </div>
+
+    <div class="disclaimer">
+        This analysis is for educational and research purposes only.
+        It does not constitute financial advice. Always consult a SEBI-registered investment advisor.<br>
+        Generated: {{ generated_at }} | FinSight v0.1
+    </div>
+</div>
+</body>
+</html>

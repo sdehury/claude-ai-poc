@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FinSight — {{ report.ticker }} Analysis</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0d1117; color: #c9d1d9; padding: 20px; }
+        .container { max-width: 900px; margin: 0 auto; }
+        h1 { color: #58a6ff; margin-bottom: 5px; }
+        h2 { color: #79c0ff; margin: 20px 0 10px; border-bottom: 1px solid #30363d; padding-bottom: 5px; }
+        .header { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 20px; margin-bottom: 20px; }
+        .header .ticker { font-size: 2em; font-weight: bold; color: #f0f6fc; }
+        .header .meta { color: #8b949e; margin-top: 5px; }
+        .score-badge {
+            display: inline-block; padding: 4px 12px; border-radius: 20px;
+            font-weight: bold; font-size: 1.1em;
+        }
+        .score-strong { background: #238636; color: #fff; }
+        .score-good { background: #2ea043; color: #fff; }
+        .score-average { background: #9e6a03; color: #fff; }
+        .score-weak { background: #da3633; color: #fff; }
+        .score-avoid { background: #8b0000; color: #fff; }
+        .card { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 15px; margin-bottom: 15px; }
+        table { width: 100%; border-collapse: collapse; margin: 10px 0; }
+        th, td { padding: 8px 12px; text-align: left; border-bottom: 1px solid #21262d; }
+        th { color: #8b949e; font-size: 0.9em; }
+        .bull { color: #3fb950; }
+        .bear { color: #f85149; }
+        .flag { color: #f85149; font-weight: bold; }
+        .signal { color: #58a6ff; }
+        ul { list-style: none; padding-left: 10px; }
+        ul li::before { content: "→ "; color: #8b949e; }
+        ul.bull li::before { content: "+ "; color: #3fb950; }
+        ul.bear li::before { content: "- "; color: #f85149; }
+        ul.flags li::before { content: "! "; color: #f85149; font-weight: bold; }
+        .disclaimer { font-size: 0.8em; color: #8b949e; margin-top: 30px; padding-top: 15px; border-top: 1px solid #21262d; }
+        .recommendation { font-size: 1.3em; font-weight: bold; color: #58a6ff; margin: 10px 0; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <div class="ticker">{{ report.ticker }}</div>
+        <div class="meta">
+            {% if report.executive_summary %}{{ report.executive_summary }}{% endif %}
+        </div>
+    </div>
+
+    {% if fs %}
+    <h2>Fundamental Analysis</h2>
+    <div class="card">
+        <span class="score-badge score-{{ fs.rating|lower }}">{{ fs.overall_score }}/100 — {{ fs.rating }}</span>
+        <span style="color: #8b949e; margin-left: 10px;">Data Coverage: {{ fs.data_coverage_pct }}%</span>
+        <table>
+            <tr><th>Category</th><th>Score</th><th>Weight</th></tr>
+            <tr><td>Earnings Quality</td><td>{{ fs.earnings_quality_score }}/100</td><td>25%</td></tr>
+            <tr><td>Balance Sheet</td><td>{{ fs.balance_sheet_score }}/100</td><td>20%</td></tr>
+            <tr><td>Valuation</td><td>{{ fs.valuation_score }}/100</td><td>20%</td></tr>
+            <tr><td>Competitive Moat</td><td>{{ fs.moat_score }}/100</td><td>20%</td></tr>
+            <tr><td>Management</td><td>{{ fs.management_score }}/100</td><td>15%</td></tr>
+        </table>
+    </div>
+    {% endif %}
+
+    {% if ts %}
+    <h2>Technical Analysis</h2>
+    <div class="card">
+        <table>
+            <tr><td>CMP</td><td>Rs.{{ "%.2f"|format(ts.cmp) }}</td></tr>
+            <tr><td>Trend</td><td>{{ ts.trend }}</td></tr>
+            <tr><td>Momentum</td><td>{{ ts.momentum }}</td></tr>
+            {% if ts.rsi_14 %}<tr><td>RSI (14)</td><td>{{ ts.rsi_14 }}</td></tr>{% endif %}
+            {% if ts.sma_50 %}<tr><td>SMA 50</td><td>Rs.{{ "%.2f"|format(ts.sma_50) }}</td></tr>{% endif %}
+            {% if ts.sma_200 %}<tr><td>SMA 200</td><td>Rs.{{ "%.2f"|format(ts.sma_200) }}</td></tr>{% endif %}
+            {% if ts.adx %}<tr><td>ADX</td><td>{{ ts.adx }}</td></tr>{% endif %}
+            {% if ts.price_vs_200dma_pct is not none %}<tr><td>vs 200-DMA</td><td>{{ "%+.1f"|format(ts.price_vs_200dma_pct) }}%</td></tr>{% endif %}
+        </table>
+        {% if ts.signals %}
+        <h3 style="margin-top:10px; color: #79c0ff;">Signals</h3>
+        <ul>
+            {% for s in ts.signals %}<li class="signal">{{ s }}</li>{% endfor %}
+        </ul>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <h2>Recommendation</h2>
+    <div class="card">
+        <div class="recommendation">{{ report.recommendation }}</div>
+        {% if report.suggested_allocation_pct %}<p>Suggested Allocation: {{ report.suggested_allocation_pct }}</p>{% endif %}
+        {% if report.target_5y %}<p>5-Year Target: {{ report.target_5y }}</p>{% endif %}
+        {% if report.entry_zones %}<p>Entry Zones: {{ report.entry_zones|join(', ') }}</p>{% endif %}
+    </div>
+
+    {% if report.bull_case %}
+    <h2 class="bull">Bull Case</h2>
+    <div class="card">
+        <ul class="bull">
+            {% for p in report.bull_case %}<li>{{ p }}</li>{% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    {% if report.bear_case %}
+    <h2 class="bear">Bear Case</h2>
+    <div class="card">
+        <ul class="bear">
+            {% for p in report.bear_case %}<li>{{ p }}</li>{% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    {% if report.red_flags %}
+    <h2 class="flag">Red Flags</h2>
+    <div class="card">
+        <ul class="flags">
+            {% for f in report.red_flags %}<li>{{ f }}</li>{% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    <div class="disclaimer">
+        {{ report.disclaimer }}<br>
+        Generated: {{ generated_at }} | FinSight v0.1
+    </div>
+</div>
+</body>
+</html>
